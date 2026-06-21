@@ -55,7 +55,7 @@ def test_e2e_export_excel(client):
 
 
 def test_e2e_rag_after_seed(client):
-    seed = client.post("/api/kb/seed", json={"offline": True})
+    seed = client.post("/api/kb/seed", json={"languages": ["en"], "limit": 30, "reset": True})
     assert seed.status_code == 200 and seed.json()["count"] > 0
     r = client.post(
         "/api/chat",

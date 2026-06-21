@@ -2,9 +2,9 @@
 
 Run as a script to (re)build the local knowledge base::
 
-    python -m app.rag.ingest            # scrape lex.uz (Russian Customs Code)
-    python -m app.rag.ingest --offline  # use only the curated fallback corpus
-    python -m app.rag.ingest --limit 50 # first 50 articles (faster/cheaper)
+    python -m app.rag.ingest                  # scrape lex.uz (default language)
+    python -m app.rag.ingest --lang uz,ru,en  # scrape all three languages
+    python -m app.rag.ingest --limit 50       # first 50 articles (faster/cheaper)
 """
 
 from __future__ import annotations
@@ -15,7 +15,6 @@ from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.config import get_settings
-from app.rag.fallback_corpus import fallback_documents
 from app.rag.lexuz import Article, scrape_customs_code
 from app.rag.vectorstore import collection_count, get_vectorstore
 
@@ -53,33 +52,29 @@ def articles_to_documents(
 
 
 def load_documents(
-    use_network: bool = True,
     languages: tuple[str, ...] | None = None,
     limit: int | None = None,
 ) -> list[Document]:
-    """Load knowledge-base documents, falling back to the curated corpus.
+    """Scrape knowledge-base documents from lex.uz.
 
     Each language is scraped independently so a single failing source (network
-    or parse error) never discards the languages that did succeed.
+    or parse error) never discards the languages that did succeed. Returns an
+    empty list if every source fails.
     """
     langs = languages or (get_settings().lexuz_language,)
-    if use_network:
-        articles: list[Article] = []
-        for lang in langs:
-            try:
-                got = scrape_customs_code(lang, limit=limit)
-                articles.extend(got)
-                print(f"  scraped {len(got)} articles ({lang})")
-            except Exception as exc:  # network/parse failure for this language
-                print(f"  ! failed to scrape '{lang}': {type(exc).__name__}: {exc}")
-        if articles:
-            return articles_to_documents(articles)
-    return fallback_documents()
+    articles: list[Article] = []
+    for lang in langs:
+        try:
+            got = scrape_customs_code(lang, limit=limit)
+            articles.extend(got)
+            print(f"  scraped {len(got)} articles ({lang})")
+        except Exception as exc:  # network/parse failure for this language
+            print(f"  ! failed to scrape '{lang}': {type(exc).__name__}: {exc}")
+    return articles_to_documents(articles) if articles else []
 
 
 def seed_knowledge_base(
     vectorstore=None,
-    use_network: bool = True,
     languages: tuple[str, ...] | None = None,
     limit: int | None = None,
     reset: bool = False,
@@ -99,7 +94,7 @@ def seed_knowledge_base(
         vs = get_vectorstore(client=client, collection=s.qdrant_collection)
     else:
         vs = vectorstore or get_vectorstore()
-    docs = load_documents(use_network=use_network, languages=languages, limit=limit)
+    docs = load_documents(languages=languages, limit=limit)
     if docs:
         vs.add_documents(docs)
     ensure_keyword_index(vs)  # enable full-text keyword search
@@ -108,7 +103,6 @@ def seed_knowledge_base(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Seed the customs-law RAG knowledge base.")
-    parser.add_argument("--offline", action="store_true", help="Use the curated fallback corpus only.")
     parser.add_argument(
         "--lang", default=None,
         help="Customs Code language(s), comma-separated: uz | ru | en "
@@ -123,8 +117,7 @@ def main() -> None:
     )
     try:
         n = seed_knowledge_base(
-            use_network=not args.offline, languages=langs,
-            limit=args.limit, reset=args.reset,
+            languages=langs, limit=args.limit, reset=args.reset,
         )
         count = collection_count(get_vectorstore())
     except RuntimeError as exc:

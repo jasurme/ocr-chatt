@@ -1,4 +1,4 @@
-.PHONY: install run test test-all test-int seed seed-offline clean lint
+.PHONY: install run test test-all test-int seed clean lint
 
 VENV := .venv
 PY := $(VENV)/bin/python
@@ -23,11 +23,8 @@ test-int:                  ## Live integration tests (needs Ollama running + mod
 test-all:
 	$(PY) -m pytest
 
-seed:                      ## Build the RAG knowledge base from lex.uz (Customs Code)
-	$(PY) -m app.rag.ingest
-
-seed-offline:              ## Seed the curated fallback corpus (no network)
-	$(PY) -m app.rag.ingest --offline
+seed:                      ## Build the RAG knowledge base from lex.uz (uz, ru, en)
+	$(PY) -m app.rag.ingest --reset --lang uz,ru,en
 
 clean:
 	rm -rf data/uploads/* data/processed/* data/qdrant .pytest_cache

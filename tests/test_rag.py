@@ -8,7 +8,6 @@ from app.chat.rag import CustomsRAG, Keywords, RAGAnswer
 from app.rag import (
     articles_to_documents,
     collection_count,
-    fallback_documents,
     get_vectorstore,
     parse_articles,
     scrape_customs_code,
@@ -83,12 +82,6 @@ def test_long_article_every_chunk_keeps_header():
     assert len(docs) > 1
     assert all(d.page_content.startswith("34-modda. Reeksport hujjatlari") for d in docs)
     assert all(d.metadata["article_number"] == 34 for d in docs)
-
-
-def test_fallback_documents_have_metadata():
-    docs = fallback_documents()
-    assert len(docs) >= 5
-    assert all(d.metadata["source_url"] and d.metadata["title"] for d in docs)
 
 
 # ----------------------------- keyword search ------------------------------ #
@@ -174,7 +167,7 @@ def test_scrape_lexuz_uz_live():
 @pytest.mark.integration
 def test_rag_hybrid_real_models():
     vs = get_vectorstore(in_memory=True, collection="live_rag")  # real bge-m3 embeddings
-    seed_knowledge_base(vectorstore=vs, use_network=False)
+    seed_knowledge_base(vectorstore=vs, languages=("en",), limit=30)  # scrape lex.uz
     rag = CustomsRAG(vectorstore=vs, semantic_k=5, keyword_k=5)
     result = rag.answer("What does the customs territory of Uzbekistan include?")
     assert result["used_context"] is True

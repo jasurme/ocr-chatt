@@ -41,25 +41,17 @@ for m in "$CHAT_MODEL" "$VISION_MODEL" "$EMBED_MODEL"; do
   ollama pull "$m"
 done
 
-# Scrape the full Customs Code from lex.uz; fall back to the offline corpus if
-# the network is unavailable, so the app still has a knowledge base either way.
+# Scrape the full Customs Code from lex.uz (uz, ru, en) into the vector store.
 seed_from_lexuz() {
   echo "    scraping lex.uz (uz, ru, en)"
-  if ! "$PY" -m app.rag.ingest --reset --lang uz,ru,en; then
-    echo "    lex.uz scrape failed — falling back to the bundled offline corpus"
-    "$PY" -m app.rag.ingest --offline \
-      || echo "    (seed failed — you can seed later from the UI 'KB' pill)"
-  fi
+  "$PY" -m app.rag.ingest --reset --lang uz,ru,en \
+    || echo "    (seed failed — check your network, then seed later from the UI 'KB' pill)"
 }
 
 echo "==> 4/5  RAG knowledge base"
 case "${SEED:-auto}" in
   skip)
     echo "    SEED=skip — leaving knowledge base as-is" ;;
-  offline)
-    echo "    seeding bundled offline corpus (no network)"
-    "$PY" -m app.rag.ingest --offline \
-      || echo "    (seed failed — you can seed later from the UI 'KB' pill)" ;;
   force)
     seed_from_lexuz ;;
   *)

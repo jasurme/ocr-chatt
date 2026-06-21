@@ -8,11 +8,23 @@ from langgraph.checkpoint.memory import InMemorySaver
 from app.chat import ChatService, CustomsRAG, DocumentQA
 from app.chat.rag import Keywords, RAGAnswer
 from app.chat.router import Route
-from app.rag import get_vectorstore, seed_knowledge_base
+from app.rag import articles_to_documents, get_vectorstore, seed_knowledge_base
+from app.rag.lexuz import Article
 from conftest import requires_ollama
 from tests._fakes import FakeChatModel, HashEmbeddings
 
 _C = {"n": 0}
+
+# A tiny in-test knowledge base so offline RAG-routing tests have something to
+# retrieve (no network, no shipped corpus — just synthetic article data).
+_KB_ARTICLES = [
+    Article(5, "Article 5. Customs territory and customs border",
+            "The customs territory of Uzbekistan includes its land, waters and airspace.",
+            "https://lex.uz/docs/2876352", "en", "Customs Code"),
+    Article(0, "Customs payments",
+            "Customs payments include customs duty, VAT and excise on imported goods.",
+            "https://lex.uz/docs/2876352", "en", "Customs Code"),
+]
 
 INVOICE_CTX = {
     "filename": "инв.PDF",
@@ -29,7 +41,7 @@ def make_service(route="general", qa_answer="DOC ANSWER", rag_answer="RAG ANSWER
     vs = get_vectorstore(
         embeddings=HashEmbeddings(64), in_memory=True, vector_size=64, collection=f"chat_{_C['n']}"
     )
-    seed_knowledge_base(vectorstore=vs, use_network=False)
+    vs.add_documents(articles_to_documents(_KB_ARTICLES))
     rag_model = FakeChatModel(
         content=rag_answer,
         structured_by_schema={
@@ -198,7 +210,7 @@ def test_doc_qa_unaffected_by_broken_kb(samples):
 @pytest.mark.integration
 def test_live_routing_three_modes():
     vs = get_vectorstore(in_memory=True, collection="chat_live")
-    seed_knowledge_base(vectorstore=vs, use_network=False)
+    seed_knowledge_base(vectorstore=vs, languages=("en",), limit=30)  # scrape lex.uz
     svc = ChatService(rag=CustomsRAG(vectorstore=vs))
 
     doc = svc.chat("What is the invoice total?", thread_id="L", document_context=INVOICE_CTX)

@@ -41,7 +41,7 @@ class ChatResponse(BaseModel):
 
 
 class SeedRequest(BaseModel):
-    offline: bool = False
+    languages: list[str] | None = None  # e.g. ["uz", "ru", "en"]; None = settings default
     limit: int | None = None
     reset: bool = False
 
@@ -228,7 +228,8 @@ def kb_seed(req: SeedRequest):
     from app.rag.vectorstore import collection_count
 
     kb = get_knowledge_base()
+    langs = tuple(req.languages) if req.languages else None
     n = seed_knowledge_base(
-        vectorstore=kb, use_network=not req.offline, limit=req.limit, reset=req.reset
+        vectorstore=kb, languages=langs, limit=req.limit, reset=req.reset
     )
     return {"seeded": n, "count": collection_count(kb)}

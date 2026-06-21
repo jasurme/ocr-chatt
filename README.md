@@ -26,22 +26,22 @@ scraping lex.uz** (the Uzbekistan Customs Code), and starts the app at
 **http://127.0.0.1:8000**. It is idempotent — re-run it any time.
 
 ```bash
-SEED=offline ./run.sh    # seed the bundled offline corpus instead (no network)
 SEED=force   ./run.sh    # re-scrape lex.uz even if a KB already exists
 SEED=skip    ./run.sh    # KB already built — just install/pull/run (fastest)
 ```
 
-> The default seed needs internet (it scrapes lex.uz). With no network, it
-> automatically falls back to the offline corpus — or use `SEED=offline`.
+> The seed scrapes lex.uz, so it needs internet. If it fails, the app still
+> starts with an empty knowledge base — re-run `SEED=force ./run.sh` (or click
+> the `KB` pill in the UI) once you're online.
 
 Then open **http://127.0.0.1:8000**, drag in a document (try the ones in
 `sample_files/`), watch it get classified + extracted, download CSV/Excel, and
 chat about it — or about Uzbek customs law — in Uzbek / Russian / English.
 
 > Prefer `make`? The same steps are `make install` → `cp .env.example .env` →
-> `ollama pull qwen2.5:7b qwen2.5vl:7b bge-m3` → `make seed` (lex.uz; or
-> `make seed-offline`) → `make run`. See §5–§6 for the manual walkthrough and
-> §3 for using a bigger/better model.
+> `ollama pull qwen2.5:7b qwen2.5vl:7b bge-m3` → `make seed` (scrapes lex.uz
+> uz/ru/en) → `make run`. See §5–§6 for the manual walkthrough and §3 for using
+> a bigger/better model.
 
 **Bigger model for better answers:** edit `OLLAMA_CHAT_MODEL` in `.env` (e.g.
 `qwen2.5:14b` or `qwen2.5:32b`) and re-run `./run.sh` — it pulls whatever the
@@ -223,8 +223,9 @@ download CSV/Excel, and chat about it (or about customs law) in Uzbek/Russian/En
 ### Seed the RAG knowledge base
 
 ```bash
-make seed                    # scrape the Customs Code of Uzbekistan from lex.uz
-make seed-offline            # or use the bundled curated corpus (no network)
+make seed                    # scrape the Customs Code of Uzbekistan from lex.uz (uz, ru, en)
+# or target one language / a subset of articles:
+python -m app.rag.ingest --reset --lang ru --limit 50
 ```
 
 (You can also seed from the UI — click the `KB` pill when it shows `KB 0`.)

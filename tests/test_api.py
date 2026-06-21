@@ -16,7 +16,7 @@ from app.extraction import StructuredExtractor
 from app.graph import build_pipeline
 from app.main import app
 from app.ocr import OCRService
-from app.rag import get_vectorstore, seed_knowledge_base
+from app.rag import get_vectorstore
 from app.schemas import InvoiceData
 from app.schemas.types import DocumentType
 from app.services import get_chat_service, get_document_store, get_pipeline
@@ -45,7 +45,6 @@ def client(tmp_path):
 
     # Fake chatbot (router always doc_qa; downgrades to general without a doc).
     vs = get_vectorstore(embeddings=HashEmbeddings(64), in_memory=True, vector_size=64, collection="api_kb")
-    seed_knowledge_base(vectorstore=vs, use_network=False)
     chat_service = ChatService(
         qa=DocumentQA(model=FakeChatModel(content="DOC ANSWER")),
         rag=CustomsRAG(vectorstore=vs, model=FakeChatModel(content="RAG ANSWER [Source 1]")),
