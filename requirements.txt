@@ -1,0 +1,42 @@
+# Pinned to compatible floors; run `pip freeze` after install for an exact lock.
+# ---- Web / API ----
+fastapi>=0.115
+uvicorn[standard]>=0.34
+python-multipart>=0.0.20
+jinja2>=3.1
+
+# ---- LLM / Orchestration (fully local) ----
+langchain>=0.3.27
+langchain-core>=0.3.70
+langchain-community>=0.3.27
+langchain-ollama>=1.0          # local Qwen (chat+vision) + bge-m3 embeddings via Ollama
+langgraph>=0.6
+langgraph-checkpoint-sqlite>=2.0  # durable chat memory (SQLite checkpointer)
+
+# ---- Vector store (RAG) ----
+langchain-qdrant>=0.2
+qdrant-client>=1.12
+
+# ---- Document ingestion / OCR ----
+pymupdf>=1.26
+pillow>=11.0
+python-docx>=1.1
+# OCR engine (mandated). Large; first run downloads models (~hundreds of MB).
+paddlepaddle>=3.0
+paddleocr>=3.0
+
+# ---- Data / export ----
+pydantic>=2.9
+pydantic-settings>=2.5
+pandas>=2.2
+openpyxl>=3.1
+
+# ---- RAG scraping (lex.uz) ----
+requests>=2.32
+beautifulsoup4>=4.13
+lxml>=5.3
+
+# ---- Testing ----
+pytest>=8.3
+pytest-asyncio>=0.24
+httpx>=0.27

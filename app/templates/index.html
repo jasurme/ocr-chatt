@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customs Document Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📄</text></svg>" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">📄</span>
+      <div>
+        <h1>GetItNice</h1>
+        <p class="tagline">OCR · extraction · multilingual chat</p>
+      </div>
+    </div>
+    <div class="status" id="status">
+      <span class="pill" id="model-pill">…</span>
+      <span class="pill" id="kb-pill" title="Knowledge base size">KB …</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- LEFT: document -->
+    <section class="panel doc-panel">
+      <div id="dropzone" class="dropzone">
+        <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png,.webp,.docx" hidden />
+        <div class="dz-inner">
+          <div class="dz-icon">⬆️</div>
+          <p class="dz-title">Drop a document</p>
+          <p class="dz-sub">or click to browse · PDF, JPG, PNG, DOCX</p>
+        </div>
+      </div>
+
+      <div id="processing" class="processing hidden">
+        <div class="spinner"></div>
+        <div class="steps" id="steps">
+          <span data-step="ingest">Ingest</span>
+          <span data-step="ocr">OCR</span>
+          <span data-step="classify">Classify</span>
+          <span data-step="extract">Extract</span>
+        </div>
+        <p class="muted" id="processing-name"></p>
+      </div>
+
+      <div id="result" class="result hidden"></div>
+
+      <div id="recent" class="recent"></div>
+    </section>
+
+    <!-- RIGHT: chat -->
+    <section class="panel chat-panel">
+      <div class="chat-head">
+        <h2>Assistant</h2>
+        <span class="pill ghost" id="mode-pill">General</span>
+      </div>
+      <div id="messages" class="messages"></div>
+      <div id="active-docs" class="active-docs"></div>
+      <div class="suggestions" id="suggestions"></div>
+      <form id="chat-form" class="composer">
+        <input id="chat-input" type="text" autocomplete="off"
+               placeholder="Ask in Uzbek, Russian or English…" />
+        <button type="submit" class="send" aria-label="Send">➤</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

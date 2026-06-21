@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# Env / secrets
+.env
+*.local
+
+# Test / cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# App runtime data
+data/uploads/
+data/processed/
+data/qdrant/
+data/chat.sqlite*
+*.log
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Keep sample files (deliverable), keep example env
+!.env.example

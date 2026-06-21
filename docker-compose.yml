@@ -1,0 +1,14 @@
+# Local Qdrant vector database for the RAG knowledge base.
+#   docker compose up -d
+# Then set QDRANT_URL=http://localhost:6333 in .env (or leave empty to use the
+# embedded on-disk store under data/qdrant for a zero-infra demo).
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: chat-ocr-qdrant
+    ports:
+      - "6333:6333"  # REST / HTTP
+      - "6334:6334"  # gRPC
+    volumes:
+      - ./data/qdrant_storage:/qdrant/storage
+    restart: unless-stopped
