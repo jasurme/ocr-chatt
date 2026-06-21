@@ -11,6 +11,14 @@ VENV=.venv
 PY="$VENV/bin/python"
 
 echo "==> 1/5  Python virtualenv + dependencies"
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "    ERROR: python3 not found. Install Python 3.11+ and re-run." >&2
+  exit 1
+fi
+if ! python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)'; then
+  echo "    ERROR: Python 3.11+ required (found $(python3 -V 2>&1)). Install a newer Python and re-run." >&2
+  exit 1
+fi
 if [ ! -d "$VENV" ]; then
   python3 -m venv "$VENV"
 fi
@@ -34,6 +42,11 @@ EMBED_MODEL="$(read_env OLLAMA_EMBED_MODEL)";  EMBED_MODEL="${EMBED_MODEL:-bge-m
 echo "==> 3/5  Ollama models"
 if ! command -v ollama >/dev/null 2>&1; then
   echo "    ERROR: 'ollama' not found. Install it from https://ollama.com and re-run." >&2
+  exit 1
+fi
+if ! ollama list >/dev/null 2>&1; then
+  echo "    ERROR: Ollama is installed but not running." >&2
+  echo "    Start it first: run 'ollama serve' (or open the Ollama app), then re-run ./run.sh" >&2
   exit 1
 fi
 for m in "$CHAT_MODEL" "$VISION_MODEL" "$EMBED_MODEL"; do

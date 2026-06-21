@@ -287,6 +287,8 @@ and full HTTP end-to-end journeys.
 
 * A single PDF can contain multiple documents (e.g. `Final INVOICES .pdf` holds
   two invoices); the current extractor treats a file as one primary document.
-* RAG currently indexes the Russian Customs Code by default; add `uz`/`en`
-  versions via [app/rag/lexuz.py](app/rag/lexuz.py) `LEXUZ_SOURCES`.
-* Swap in PaddleOCR + Qwen for a fully local deployment (see §3).
+* RAG seeds the Customs Code in all three languages (`make seed` →
+  `--lang uz,ru,en`); a single CLI run with one `--lang` indexes just that one.
+  Sources are configured in [app/rag/lexuz.py](app/rag/lexuz.py) `LEXUZ_SOURCES`.
+* The knowledge base is built **only** by scraping lex.uz (network required);
+  there is no bundled offline corpus.
