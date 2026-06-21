@@ -11,6 +11,44 @@ classification / extraction / chat, incl. vision), **bge-m3** (embeddings), and
 
 ---
 
+## 0. Quick start (run this repo)
+
+**Prerequisites:** **Python 3.11+** and **[Ollama](https://ollama.com)** installed
+and running. Nothing else — no API keys, no poppler, no separate database.
+
+```bash
+./run.sh
+```
+
+That one script installs dependencies into `.venv`, creates `.env` (if missing),
+pulls the Ollama models named in `.env`, **seeds the RAG knowledge base by
+scraping lex.uz** (the Uzbekistan Customs Code), and starts the app at
+**http://127.0.0.1:8000**. It is idempotent — re-run it any time.
+
+```bash
+SEED=offline ./run.sh    # seed the bundled offline corpus instead (no network)
+SEED=force   ./run.sh    # re-scrape lex.uz even if a KB already exists
+SEED=skip    ./run.sh    # KB already built — just install/pull/run (fastest)
+```
+
+> The default seed needs internet (it scrapes lex.uz). With no network, it
+> automatically falls back to the offline corpus — or use `SEED=offline`.
+
+Then open **http://127.0.0.1:8000**, drag in a document (try the ones in
+`sample_files/`), watch it get classified + extracted, download CSV/Excel, and
+chat about it — or about Uzbek customs law — in Uzbek / Russian / English.
+
+> Prefer `make`? The same steps are `make install` → `cp .env.example .env` →
+> `ollama pull qwen2.5:7b qwen2.5vl:7b bge-m3` → `make seed` (lex.uz; or
+> `make seed-offline`) → `make run`. See §5–§6 for the manual walkthrough and
+> §3 for using a bigger/better model.
+
+**Bigger model for better answers:** edit `OLLAMA_CHAT_MODEL` in `.env` (e.g.
+`qwen2.5:14b` or `qwen2.5:32b`) and re-run `./run.sh` — it pulls whatever the
+file asks for. More on the accuracy/speed trade-off in §3.
+
+---
+
 ## 1. Features (mapped to the assignment)
 
 | Must-have | Where |
@@ -92,6 +130,29 @@ back to the OCR text otherwise.
 
 > First run downloads PaddleOCR + pulls the Ollama models; subsequent runs are
 > fast. OCR language is set with `PADDLE_LANG` (default `en`).
+
+### Choosing a model size (accuracy vs. speed)
+
+The defaults (`qwen2.5:7b` text + `qwen2.5vl:7b` vision) are sized to run on a
+modest machine. **On a stronger computer, use a bigger model for better
+answers** — just change one line in `.env` and re-run `./run.sh`:
+
+| `OLLAMA_CHAT_MODEL` | ~VRAM | Quality | Notes |
+|---------------------|-------|---------|-------|
+| `qwen2.5:7b` (default) | ~6 GB | good | runs on most laptops / 8 GB GPUs |
+| `qwen2.5:14b` | ~10 GB | better | recommended on a 16–24 GB GPU |
+| `qwen2.5:32b` | ~20 GB | best | needs a 24 GB+ GPU (e.g. RTX 4090) |
+
+For vision-heavy docs you can likewise bump `OLLAMA_VISION_MODEL` to
+`qwen2.5vl:32b`.
+
+**Will it be both better *and* fast?** Accuracy goes up with model size
+regardless of hardware. **Speed depends on the GPU:** a larger model is slower
+per token, but a capable GPU more than offsets that — a 14B/32B on a 24 GB GPU
+typically answers faster *and* better than a 7B on CPU. The slow case is running
+a big model without enough VRAM (it spills to CPU/RAM and crawls). Rule of thumb:
+pick the largest model that fits comfortably in GPU memory. Also install
+`paddlepaddle-gpu` for GPU-accelerated OCR.
 
 ---
 
